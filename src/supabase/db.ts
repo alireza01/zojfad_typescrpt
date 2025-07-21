@@ -257,8 +257,8 @@ export async function getBotInfo(forceUpdate = false): Promise<BotInfo> {
     }
     return botInfo;
 }
-// 
---- Broadcast DB Functions ---
+
+// --- Broadcast DB Functions ---
 
 /**
  * Creates a new entry for a broadcast campaign in the database.
