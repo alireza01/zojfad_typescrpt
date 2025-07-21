@@ -1,11 +1,10 @@
 // src/pdf/textProcessor.ts
-import { default as fShaper } from 'https://jspm.dev/npm:f-shaper@1.0.2';
+import { shape } from 'https://esm.sh/arabic-shaper-ts@2.0.1';
 import { log } from '../utils/misc.ts';
 
 /**
  * Processes a string to make it suitable for rendering in the PDF.
- * - For Persian text, it applies proper text shaping for connected characters.
- * - For non-Persian text, it returns the text as is.
+ * This version uses the 'arabic-shaper-ts' library, which is more reliable.
  *
  * @param text The input string.
  * @returns The processed string, ready for the PDF.
@@ -23,10 +22,11 @@ export function processTextForPDF(text: any): string {
 
     if (hasPersian) {
         try {
-            // Use f-shaper to correctly form ligatures and connect letters.
-            return fShaper.shape(inputText);
+            // Use arabic-shaper-ts to correctly form ligatures and connect letters.
+            // This function returns the properly shaped string that jspdf can render.
+            return shape(inputText);
         } catch (e) {
-            log('ERROR', `f-shaper failed for text: "${inputText}"`, e);
+            log('ERROR', `arabic-shaper-ts failed for text: "${inputText}"`, e);
             // Fallback for safety, though it will likely look wrong.
             return inputText;
         }
