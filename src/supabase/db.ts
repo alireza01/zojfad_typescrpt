@@ -1,8 +1,7 @@
 // src/supabase/db.ts
-import { supabase, kv } from '../config.ts';
-import { log } from '../utils/misc.ts';
-import { parseTime, ENGLISH_WEEKDAYS } from '../config.ts';
-import type { User, Chat, UserSchedule, DayKey, Lesson, BotInfo, Broadcast } from '../types.ts';
+import { supabase, kv, ENGLISH_WEEKDAYS } from '../config.ts';
+import { log, parseTime } from '../utils/misc.ts'; // CORRECTED THIS LINE
+import type { User, Chat, UserSchedule, DayKey, Lesson, BotInfo, Broadcast, Schedule } from '../types.ts';
 
 // --- Logging ---
 export async function logUsage(user: User, chat: Chat, command: string): Promise<void> {
