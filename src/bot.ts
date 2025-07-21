@@ -44,10 +44,14 @@ export async function startBot() {
     onListen: async ({ hostname, port }) => {
       log("INFO", `✅ Server listening on http://${hostname}:${port}`);
       
+      // We escape the username to prevent Markdown parsing errors
+      const escapedUsername = botInfo.username.replace(/_/g, '\\_');
+      const startupMessage = `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${escapedUsername}\nMode: Deno Deploy`;
+      
       // Notify admin on startup
       await sendMessage(
         ADMIN_CHAT_ID,
-        `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${botInfo.username}\nMode: Deno Deploy`
+        startupMessage
       );
       
       log("INFO", "Bot is running. Make sure the webhook is set in Telegram.");
