@@ -1,5 +1,5 @@
 // src/pdf/textProcessor.ts
-import { default as fShaper } from 'https://esm.sh/f-shaper@1.0.2';
+import { default as fShaper } from 'https://jspm.dev/npm:f-shaper@1.0.2';
 import { log } from '../utils/misc.ts';
 
 /**
