@@ -35,22 +35,34 @@ export async function telegramApiCall(method: string, payload: object = {}): Pro
 // --- Specific API Functions ---
 
 export function sendMessage(chatId: number | string, text: string, replyMarkup: object | null = null) {
-  return telegramApiCall("sendMessage", {
+  const payload: any = {
     chat_id: String(chatId),
     text,
     parse_mode: "Markdown",
-    reply_markup: replyMarkup,
-  });
+  };
+  
+  // فقط در صورتی که reply_markup وجود داشته باشد، آن را اضافه کن
+  if (replyMarkup !== null) {
+    payload.reply_markup = replyMarkup;
+  }
+  
+  return telegramApiCall("sendMessage", payload);
 }
 
 export function editMessageText(chatId: number | string, messageId: number, text: string, replyMarkup: object | null = null) {
-  return telegramApiCall("editMessageText", {
+  const payload: any = {
     chat_id: String(chatId),
     message_id: messageId,
     text,
     parse_mode: "Markdown",
-    reply_markup: replyMarkup,
-  });
+  };
+  
+  // فقط در صورتی که reply_markup وجود داشته باشد، آن را اضافه کن
+  if (replyMarkup !== null) {
+    payload.reply_markup = replyMarkup;
+  }
+  
+  return telegramApiCall("editMessageText", payload);
 }
 
 export function answerCallbackQuery(queryId: string, text: string = "", showAlert: boolean = false) {
@@ -86,12 +98,18 @@ export async function sendDocument(chatId: number | string, documentBuffer: Uint
 
 // ⭐ ADD THESE NEW FUNCTIONS
 export function copyMessage(chatId: number | string, fromChatId: number | string, messageId: number, replyMarkup: object | null = null) {
-    return telegramApiCall("copyMessage", {
+    const payload: any = {
         chat_id: String(chatId),
         from_chat_id: String(fromChatId),
         message_id: messageId,
-        reply_markup: replyMarkup,
-    });
+    };
+    
+    // فقط در صورتی که reply_markup وجود داشته باشد، آن را اضافه کن
+    if (replyMarkup !== null) {
+        payload.reply_markup = replyMarkup;
+    }
+    
+    return telegramApiCall("copyMessage", payload);
 }
 
 export function deleteMessage(chatId: number | string, messageId: number) {

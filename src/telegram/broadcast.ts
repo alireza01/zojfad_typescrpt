@@ -1,7 +1,7 @@
 // src/telegram/broadcast.ts
 import { kv, ADMIN_CHAT_ID } from "../config.ts";
 import { log } from "../utils/misc.ts";
-import { sendMessage, editMessageText, answerCallbackQuery, copyMessage, forwardMessage } from "./api.ts";
+import { sendMessage, editMessageText, answerCallbackQuery, copyMessage, forwardMessage, deleteMessage } from "./api.ts";
 import { createBroadcast, getTargetIds, logBroadcastMessage, updateBroadcast } from "../supabase/db.ts";
 import type { CallbackQuery, Message, User, BroadcastState } from "../types.ts";
 
@@ -244,6 +244,12 @@ async function executeBroadcast(state: BroadcastState, admin: User) {
     let reportMsg;
     try {
         reportMsg = await sendMessage(admin.id, `🚀 در حال ارسال پیام به ${targets.length} گیرنده... (۰٪)`);
+        
+        // بررسی وجود result و message_id
+        if (!reportMsg.ok || !reportMsg.result || !reportMsg.result.message_id) {
+            throw new Error(`Failed to get message_id from response: ${JSON.stringify(reportMsg)}`);
+        }
+        
         await updateBroadcast(broadcast.id, { final_report_message_id: reportMsg.result.message_id, status: 'sending' });
     } catch (error) {
         log("ERROR", "Failed to send initial report message", error);
@@ -275,7 +281,15 @@ async function executeBroadcast(state: BroadcastState, admin: User) {
         if ((i + 1) % BATCH_SIZE === 0 || i + 1 === targets.length) {
             const progress = Math.round(((i + 1) / targets.length) * 100);
             const reportText = `🚀 در حال ارسال... (${progress}٪)\n\n✅ موفق: ${success}\n❌ ناموفق: ${fail}`;
-            await editMessageText(admin.id, reportMsg.result.message_id, reportText).catch(e => log("WARN", "Could not edit progress message", e));
+            
+            // بررسی وجود reportMsg و result و message_id
+            if (reportMsg && reportMsg.result && reportMsg.result.message_id) {
+                await editMessageText(admin.id, reportMsg.result.message_id, reportText)
+                    .catch(e => log("WARN", "Could not edit progress message", e));
+            } else {
+                log("WARN", "Cannot update progress: reportMsg.result.message_id is undefined", { reportMsg });
+            }
+            
             if (i + 1 < targets.length) await new Promise(resolve => setTimeout(resolve, DELAY_MS));
         }
     }
@@ -287,5 +301,14 @@ async function executeBroadcast(state: BroadcastState, admin: User) {
                             `🎯 کل گیرندگان: ${targets.length}\n` +
                             `✅ ارسال موفق: ${success}\n` +
                             `❌ ارسال ناموفق: ${fail}`;
-    await editMessageText(admin.id, reportMsg.result.message_id, finalReportText);
+    
+    // بررسی وجود reportMsg و result و message_id
+    if (reportMsg && reportMsg.result && reportMsg.result.message_id) {
+        await editMessageText(admin.id, reportMsg.result.message_id, finalReportText)
+            .catch(e => log("WARN", "Could not edit final report message", e));
+    } else {
+        // اگر reportMsg وجود نداشت، یک پیام جدید ارسال کن
+        await sendMessage(admin.id, finalReportText)
+            .catch(e => log("WARN", "Could not send final report message", e));
+    }
 }

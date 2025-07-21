@@ -145,10 +145,14 @@ export async function handleScheduleCommand(message: Message, fromCallback = fal
 
 export async function handleAdminCommand(message: Message, fromCallback = false) {
     const user = message.from!;
-    if (String(user.id) !== ADMIN_CHAT_ID || message.chat.type !== 'private') {
+    
+    // بررسی اینکه آیا کاربر ادمین است یا خیر
+    if (String(user.id) !== String(ADMIN_CHAT_ID) || message.chat.type !== 'private') {
+        log("INFO", `Non-admin user tried to access admin panel: ${user.id}, expected: ${ADMIN_CHAT_ID}`);
         await sendMessage(message.chat.id, "⛔️ این دستور مخصوص ادمین است.");
         return;
     }
+    
     await logUsage(user, message.chat, fromCallback ? "callback:admin:panel" : "/admin");
     
     const [usersRes, groupsRes] = await Promise.all([
