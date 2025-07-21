@@ -1,0 +1,67 @@
+// src/bot.ts
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { BOT_TOKEN, ADMIN_CHAT_ID } from "./config.ts";
+import { getBotInfo } from "./supabase/db.ts";
+import { getVazirFont } from "./pdf/font.ts";
+import { handleUpdate } from "./telegram/handlers.ts";
+import { setWebhook, sendMessage } from "./telegram/api.ts";
+import { log } from "./utils/misc.ts";
+import type { Update } from "./types.ts";
+
+/**
+ * Handles incoming webhook requests from Telegram.
+ * @param request - The incoming HTTP request.
+ * @returns An HTTP Response.
+ */
+async function handleRequest(request: Request): Promise<Response> {
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405 });
+  }
+  try {
+    const update: Update = await request.json();
+    // Asynchronously process the update to respond to Telegram quickly.
+    handleUpdate(update).catch(e => log("CRITICAL", "Error in async update handler", e));
+    return new Response("OK", { status: 200 });
+  } catch (e) {
+    log("ERROR", "Failed to parse incoming update", e);
+    return new Response("Bad Request", { status: 400 });
+  }
+}
+
+/**
+ * Initializes and starts the bot.
+ */
+export async function startBot() {
+  // Pre-fetch critical resources at startup
+  await getVazirFont();
+  const botInfo = await getBotInfo();
+  
+  // Deno Deploy provides the port via an environment variable.
+  const port = Deno.env.get("PORT") ? parseInt(Deno.env.get("PORT")!) : 8000;
+  
+  serve(handleRequest, {
+    port,
+    onListen: async ({ hostname, port }) => {
+      log("INFO", `✅ Server listening on http://${hostname}:${port}`);
+      // Set the webhook URL for Deno Deploy
+      const deployUrl = `https://${Deno.env.get("DENO_DEPLOYMENT_ID")}.deno.dev`;
+      // For local development, you would need a tool like ngrok and set the URL here.
+      if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
+          const webhookUrl = `${deployUrl}/${BOT_TOKEN}`;
+          await setWebhook(webhookUrl);
+      } else {
+          log("WARN", "Not running on Deno Deploy, webhook not set automatically. Use a tunneling service for local development.");
+      }
+      
+      // Notify admin on startup
+      await sendMessage(
+        ADMIN_CHAT_ID,
+        `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${botInfo.username}\nMode: Deno Deploy`
+      );
+    },
+    onError: (error) => {
+        log("CRITICAL", "Server listening error", error);
+        return new Response("Server Error", { status: 500 });
+    }
+  });
+}
