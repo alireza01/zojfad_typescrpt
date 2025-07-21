@@ -36,32 +36,25 @@ export async function startBot() {
   await getVazirFont();
   const botInfo = await getBotInfo();
   
-  // Deno Deploy provides the port via an environment variable.
+  // Deno Deploy provides the port via an environment variable
   const port = Deno.env.get("PORT") ? parseInt(Deno.env.get("PORT")!) : 8000;
   
   serve(handleRequest, {
     port,
     onListen: async ({ hostname, port }) => {
       log("INFO", `✅ Server listening on http://${hostname}:${port}`);
-      // Set the webhook URL for Deno Deploy
-      const deployUrl = `https://${Deno.env.get("DENO_DEPLOYMENT_ID")}.deno.dev`;
-      // For local development, you would need a tool like ngrok and set the URL here.
-      if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
-          const webhookUrl = `${deployUrl}/${BOT_TOKEN}`;
-          await setWebhook(webhookUrl);
-      } else {
-          log("WARN", "Not running on Deno Deploy, webhook not set automatically. Use a tunneling service for local development.");
-      }
       
       // Notify admin on startup
       await sendMessage(
         ADMIN_CHAT_ID,
         `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${botInfo.username}\nMode: Deno Deploy`
       );
+      
+      log("INFO", "Bot is running. Make sure the webhook is set in Telegram.");
     },
     onError: (error) => {
-        log("CRITICAL", "Server listening error", error);
-        return new Response("Server Error", { status: 500 });
+      log("CRITICAL", "Server listening error", error);
+      return new Response("Server Error", { status: 500 });
     }
   });
 }
