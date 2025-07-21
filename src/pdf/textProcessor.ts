@@ -1,8 +1,5 @@
 // src/pdf/textProcessor.ts
-// This module contains the logic for correctly shaping Persian text for PDF generation.
-// It replaces the old, broken string reversal method with a proper text shaping library.
-
-import { default as fShaper } from 'https://esm.sh/f-shaper';
+import { default as fShaper } from 'https://esm.sh/f-shaper@1.0.2';
 import { log } from '../utils/misc.ts';
 
 /**
@@ -27,7 +24,6 @@ export function processTextForPDF(text: any): string {
     if (hasPersian) {
         try {
             // Use f-shaper to correctly form ligatures and connect letters.
-            // Example: 'سلام' -> correctly shaped 'سلام' with connected glyphs.
             return fShaper.shape(inputText);
         } catch (e) {
             log('ERROR', `f-shaper failed for text: "${inputText}"`, e);
@@ -36,7 +32,6 @@ export function processTextForPDF(text: any): string {
         }
     } else {
         // If no Persian characters, return the original text.
-        // This correctly handles numbers, English, and symbols.
         return inputText;
     }
 }
