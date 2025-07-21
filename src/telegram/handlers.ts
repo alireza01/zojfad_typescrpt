@@ -1,7 +1,7 @@
 // src/telegram/handlers.ts
 import { handleStartCommand, handleHelpCommand, handleWeekStatusCommand, handleScheduleCommand, handleAdminCommand } from './commands.ts';
-import { handleScheduleCallback, handlePdfCallback, handleAdminCallback } from './callbacks.ts';
-import { handleBroadcastMenu, handleBroadcastCallback, handleBroadcastContent } from './broadcast.ts'; // ⭐ Import new handlers
+import { handleScheduleCallback, handlePdfCallback } from './callbacks.ts';
+import { handleBroadcastMenu, handleBroadcastCallback, handleBroadcastContent } from './broadcast.ts';
 import { editMessageText, sendMessage, answerCallbackQuery } from './api.ts';
 import { ADMIN_CHAT_ID, kv, SCHEDULE_TIME_REGEX } from "../config.ts";
 import { logUsage, saveUserSchedule, addUser, addGroup } from "../supabase/db.ts";
@@ -121,8 +121,9 @@ async function handleCallbackQuery(query: CallbackQuery) {
       break;
     case "admin":
       await answerCallbackQuery(query.id);
-      if (action === 'panel') await handleAdminCommand(query.message, true);
-      else await handleAdminCallback(query, action, params);
+      if (action === 'panel') {
+        await handleAdminCommand(query.message, true);
+      }
       break;
     // ⭐ NEW: Route all broadcast callbacks to the new handler
     case "broadcast":

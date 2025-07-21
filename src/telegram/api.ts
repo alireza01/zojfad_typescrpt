@@ -113,60 +113,10 @@ export async function setWebhook(url: string): Promise<boolean> {
   }
 }
 
-// --- Broadcasting (Admin) ---
-export async function forwardMessage(toChatId: string, fromChatId: string, messageId: number) {
+export function forwardMessage(toChatId: string, fromChatId: string, messageId: number) {
     return telegramApiCall("forwardMessage", {
-        chat_id: toChatId,
-        from_chat_id: fromChatId,
+        chat_id: String(toChatId),
+        from_chat_id: String(fromChatId),
         message_id: messageId,
-        disable_notification: true,
     });
-}
-
-export async function broadcastMessage(fromChatId: string, messageId: number, targetType: "users" | "groups"): Promise<void> {
-    const targetLabel = targetType === "users" ? "کاربران" : "گروه‌ها";
-    const tableName = targetType;
-    const selectField = targetType === "users" ? "chat_id" : "group_id";
-    
-    log("INFO", `[Broadcast] Starting broadcast to all ${targetLabel}`);
-    const { data, error, count } = await supabase.from(tableName).select(selectField, { count: 'exact' });
-    
-    if (error || !data) {
-        log("ERROR", `[Broadcast] Failed to fetch targets`, error);
-        await sendMessage(ADMIN_CHAT_ID, `خطا در دریافت لیست ${targetLabel}: ${error?.message}`);
-        return;
-    }
-    
-    const targets: string[] = data.map((item: any) => item[selectField]?.toString()).filter(Boolean);
-    const totalTargets = count ?? targets.length;
-    
-    if (totalTargets === 0) {
-        await sendMessage(ADMIN_CHAT_ID, `هیچ ${targetLabel} برای ارسال اعلان یافت نشد.`);
-        return;
-    }
-    
-    await sendMessage(ADMIN_CHAT_ID, `⏳ شروع ارسال اعلان به ${totalTargets} ${targetLabel}...`);
-        
-    let successCount = 0;
-    let failCount = 0;
-    const BATCH_SIZE = 25;
-    const DELAY_MS = 1100;
-    
-    for (let i = 0; i < targets.length; i += BATCH_SIZE) {
-        const batch = targets.slice(i, i + BATCH_SIZE);
-        const promises = batch.map(targetId =>
-            forwardMessage(targetId, fromChatId, messageId)
-                .then(res => (res.ok ? successCount++ : failCount++))
-                .catch(() => failCount++)
-        );
-        await Promise.all(promises);
-        log("INFO", `[Broadcast] Batch ${i / BATCH_SIZE + 1} sent. Progress: ${successCount + failCount}/${totalTargets}`);
-        if (i + BATCH_SIZE < targets.length) {
-            await new Promise(resolve => setTimeout(resolve, DELAY_MS));
-        }
-    }
-    
-    const report = `📢 گزارش اعلان:\n\n🎯 هدف: ${totalTargets} ${targetLabel}\n✅ موفق: ${successCount}\n❌ ناموفق: ${failCount}`;
-    await sendMessage(ADMIN_CHAT_ID, report);
-    log("INFO", "[Broadcast] Finished.", { success: successCount, fail: failCount });
 }

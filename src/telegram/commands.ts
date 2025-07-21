@@ -1,11 +1,11 @@
 // src/telegram/commands.ts
-import { sendMessage, editMessageText, answerCallbackQuery } from "./api.ts";
+import { sendMessage, editMessageText } from "./api.ts";
 import { logUsage, addUser, addGroup, getUserSchedule } from "../supabase/db.ts";
 import { getBotInfo } from "./botInfo.ts";
 import { getPersianDate, getWeekStatus } from "../utils/date.ts";
-import { ADMIN_CHAT_ID, kv, ENGLISH_WEEKDAYS, PERSIAN_WEEKDAYS_FULL, SCHEDULE_TIME_REGEX, supabase } from "../config.ts";
-import { log, parseTime } from '../utils/misc.ts';
-import type { Message, User, Chat } from "../types.ts";
+import { ADMIN_CHAT_ID, ENGLISH_WEEKDAYS, PERSIAN_WEEKDAYS_FULL, TEHRAN_TIMEZONE, supabase } from "../config.ts";
+import { DateTime } from "https://esm.sh/luxon@3.4.4";
+import type { Message } from "../types.ts";
 
 export async function handleStartCommand(message: Message) {
     const user = message.from!;
@@ -82,9 +82,11 @@ export async function handleWeekStatusCommand(message: Message, fromCallback = f
     
     if (chat.type === "private") {
         const schedule = await getUserSchedule(user.id);
-        const todayLuxon = new Date(); // Simplified for Deno Deploy timezone (UTC)
-        const todayDayKey = ENGLISH_WEEKDAYS[(todayLuxon.getUTCDay() + 1) % 7]; // Sat = 0, Sun = 1...
-        const todayPersianDay = PERSIAN_WEEKDAYS_FULL[(todayLuxon.getUTCDay() + 1) % 7];
+        // --- FIX: Use proper timezone handling ---
+        const todayLuxon = DateTime.now().setZone(TEHRAN_TIMEZONE);
+        const todayDayKey = ENGLISH_WEEKDAYS[todayLuxon.weekday % 7]; // In Luxon, Monday is 1, Sunday is 7. We need to adjust for our week start.
+        const todayPersianDay = PERSIAN_WEEKDAYS_FULL[todayLuxon.weekday % 7];
+        // --- END OF FIX ---
         
         const todaySchedule = (currentWeekStatus === 'زوج' ? schedule.even_week_schedule : schedule.odd_week_schedule)[todayDayKey] || [];
                 

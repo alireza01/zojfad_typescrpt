@@ -1,6 +1,7 @@
 // src/supabase/db.ts
-import { supabase, kv, ENGLISH_WEEKDAYS } from '../config.ts';
-import { log, parseTime } from '../utils/misc.ts'; // Correctly import parseTime from here
+import { supabase, ENGLISH_WEEKDAYS } from '../config.ts';
+import { log, parseTime } from '../utils/misc.ts';
+import type { User, Chat, UserSchedule, Schedule, DayKey, Lesson, Broadcast } from '../types.ts';
 // --- Logging ---
 export async function logUsage(user: User, chat: Chat, command: string): Promise<void> {
   try {

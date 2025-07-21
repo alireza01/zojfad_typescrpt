@@ -44,17 +44,24 @@ export async function startBot() {
     onListen: async ({ hostname, port }) => {
       log("INFO", `✅ Server listening on http://${hostname}:${port}`);
       
-      // We escape the username to prevent Markdown parsing errors
-      const escapedUsername = botInfo.username.replace(/_/g, '\\_');
-      const startupMessage = `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${escapedUsername}\nMode: Deno Deploy`;
+      // Only send startup notification if NOTIFY_ON_STARTUP is set to "yes"
+      const notifyOnStartup = Deno.env.get("NOTIFY_ON_STARTUP") || "no";
       
-      // Notify admin on startup
-      await sendMessage(
-        ADMIN_CHAT_ID,
-        startupMessage
-      );
+      if (notifyOnStartup.toLowerCase() === "yes") {
+        // We escape the username to prevent Markdown parsing errors
+        const escapedUsername = botInfo.username.replace(/_/g, '\\_');
+        const startupMessage = `✅ *Bot Started!*\nID: \`${botInfo.id}\`\nUsername: @${escapedUsername}\nMode: Deno Deploy`;
+        
+        // Notify admin on startup
+        await sendMessage(
+          ADMIN_CHAT_ID,
+          startupMessage
+        );
+      }
       
-      log("INFO", "Bot is running. Make sure the webhook is set in Telegram.");
+      // Always log this info to the console
+      log("INFO", `Bot is running. ID: ${botInfo.id}, Username: @${botInfo.username}`);
+      log("INFO", "Make sure the webhook is set in Telegram.");
     },
     onError: (error) => {
       log("CRITICAL", "Server listening error", error);

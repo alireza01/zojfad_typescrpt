@@ -125,25 +125,3 @@ export async function handlePdfCallback(query: CallbackQuery) {
     }
 }
 
-export async function handleAdminCallback(query: CallbackQuery, action: string, params: string[]) {
-    const user = query.from;
-    const message = query.message!;
-    const chatId = message.chat.id;
-    
-    if (action === 'confirm_broadcast') {
-        const targetType = params[0] as "users" | "groups";
-        const messageToForwardId = parseInt(params[1]);
-        
-        // Remove the confirmation message
-        await editMessageText(chatId, message.message_id, `✅ بسیار خب! در حال ارسال پیام به تمام *${targetType === 'users' ? 'کاربران' : 'گروه‌ها'}*...`);
-                
-        // This is now fire-and-forget
-        import('../telegram/api.ts').then(api => {
-            api.broadcastMessage(String(chatId), messageToForwardId, targetType);
-        });
-        
-    } else if (action === 'cancel_broadcast') {
-        await editMessageText(chatId, message.message_id, "ارسال پیام همگانی لغو شد.");
-    }
-    await answerCallbackQuery(query.id);
-}
