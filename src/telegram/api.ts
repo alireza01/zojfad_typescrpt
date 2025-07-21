@@ -5,9 +5,6 @@ import type { Update } from "../types.ts";
 
 /**
  * A generic function to make calls to the Telegram Bot API.
- * @param method - The API method to call (e.g., "sendMessage").
- * @param payload - The JSON payload for the method.
- * @returns The response from the Telegram API.
  */
 export async function telegramApiCall(method: string, payload: object = {}): Promise<any> {
   const url = `${TELEGRAM_URL}/${method}`;
@@ -32,25 +29,36 @@ export async function telegramApiCall(method: string, payload: object = {}): Pro
   }
 }
 
-// --- Specific API Functions ---
 
-export function sendMessage(chatId: number | string, text: string, replyMarkup: object | null = null) {
-  return telegramApiCall("sendMessage", {
+// --- CORRECTED API FUNCTIONS ---
+
+export function sendMessage(chatId: number | string, text: string, options: { reply_markup?: object, reply_to_message_id?: number } = {}) {
+  const payload: any = {
     chat_id: String(chatId),
     text,
     parse_mode: "Markdown",
-    reply_markup: replyMarkup,
-  });
+    ...options
+  };
+  // This check prevents the "reply markup" error.
+  if (!payload.reply_markup) {
+    delete payload.reply_markup;
+  }
+  return telegramApiCall("sendMessage", payload);
 }
 
 export function editMessageText(chatId: number | string, messageId: number, text: string, replyMarkup: object | null = null) {
-  return telegramApiCall("editMessageText", {
+  const payload: any = {
     chat_id: String(chatId),
     message_id: messageId,
     text,
     parse_mode: "Markdown",
-    reply_markup: replyMarkup,
-  });
+    reply_markup: replyMarkup
+  };
+  // This check prevents the "reply markup" error.
+  if (!payload.reply_markup) {
+      delete payload.reply_markup;
+  }
+  return telegramApiCall("editMessageText", payload);
 }
 
 export function answerCallbackQuery(queryId: string, text: string = "", showAlert: boolean = false) {
@@ -84,14 +92,17 @@ export async function sendDocument(chatId: number | string, documentBuffer: Uint
     }
 }
 
-// ⭐ ADD THESE NEW FUNCTIONS
 export function copyMessage(chatId: number | string, fromChatId: number | string, messageId: number, replyMarkup: object | null = null) {
-    return telegramApiCall("copyMessage", {
+    const payload: any = {
         chat_id: String(chatId),
         from_chat_id: String(fromChatId),
         message_id: messageId,
-        reply_markup: replyMarkup,
-    });
+        reply_markup: replyMarkup
+    };
+    if (!payload.reply_markup) {
+        delete payload.reply_markup;
+    }
+    return telegramApiCall("copyMessage", payload);
 }
 
 export function deleteMessage(chatId: number | string, messageId: number) {
@@ -113,7 +124,7 @@ export async function setWebhook(url: string): Promise<boolean> {
   }
 }
 
-export function forwardMessage(toChatId: string, fromChatId: string, messageId: number) {
+export async function forwardMessage(toChatId: string, fromChatId: string, messageId: number) {
     return telegramApiCall("forwardMessage", {
         chat_id: String(toChatId),
         from_chat_id: String(fromChatId),
