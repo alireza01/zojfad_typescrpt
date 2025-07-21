@@ -37,8 +37,16 @@ async function handleMessage(message: Message) {
   if (stateResult.value) {
     const state = stateResult.value;
 
-    if (state.name === 'broadcast_awaiting_content' && String(user.id) === ADMIN_CHAT_ID) {
-      await handleBroadcastContent(message, user, state as BroadcastState);
+    // اصلاح بررسی ADMIN_CHAT_ID با تبدیل هر دو به string
+    if (state.name === 'broadcast_awaiting_content' && String(user.id) === String(ADMIN_CHAT_ID)) {
+      log("INFO", "Admin is sending broadcast content", { userId: user.id, adminId: ADMIN_CHAT_ID });
+      try {
+        await handleBroadcastContent(message, user, state as BroadcastState);
+      } catch (error) {
+        log("ERROR", "Error handling broadcast content", error);
+        await sendMessage(user.id, "❌ خطا در پردازش محتوای پیام. لطفاً دوباره تلاش کنید.");
+        await kv.delete([`state:${user.id}`]);
+      }
       return;
     }
 
@@ -124,10 +132,19 @@ async function handleCallbackQuery(query: CallbackQuery) {
       if (action === 'panel') await handleAdminCommand(query.message, true);
       else await handleAdminCallback(query, action, params);
       break;
-    // ⭐ NEW: Route all broadcast callbacks to the new handler
+    // ⭐ Route all broadcast callbacks to the new handler
     case "broadcast":
-      if (action === 'menu') await handleBroadcastMenu(query);
-      else await handleBroadcastCallback(query, action, params);
+      await answerCallbackQuery(query.id);
+      if (action === 'menu') {
+        await handleBroadcastMenu(query);
+      } else {
+        try {
+          await handleBroadcastCallback(query, action, params);
+        } catch (error) {
+          log("ERROR", "Error handling broadcast callback", { action, params, error });
+          await sendMessage(query.from.id, "❌ خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.");
+        }
+      }
       break;
     case "cancel_action":
       await answerCallbackQuery(query.id);

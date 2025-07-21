@@ -137,13 +137,20 @@ export async function handleAdminCallback(query: CallbackQuery, action: string, 
         // Remove the confirmation message
         await editMessageText(chatId, message.message_id, `✅ بسیار خب! در حال ارسال پیام به تمام *${targetType === 'users' ? 'کاربران' : 'گروه‌ها'}*...`);
                 
-        // This is now fire-and-forget
-        import('../telegram/api.ts').then(api => {
-            api.broadcastMessage(String(chatId), messageToForwardId, targetType);
-        });
+        try {
+            // استفاده مستقیم از تابع broadcastMessage به جای import
+            const api = await import('../telegram/api.ts');
+            await api.broadcastMessage(String(chatId), messageToForwardId, targetType);
+        } catch (error) {
+            log("ERROR", "Failed to broadcast message", error);
+            await sendMessage(chatId, "❌ خطا در ارسال پیام همگانی. لطفاً دوباره تلاش کنید.");
+        }
         
     } else if (action === 'cancel_broadcast') {
         await editMessageText(chatId, message.message_id, "ارسال پیام همگانی لغو شد.");
+    } else {
+        // برای سایر اکشن‌های ادمین
+        log("WARN", `Unhandled admin callback action: ${action}`, { params });
     }
     await answerCallbackQuery(query.id);
 }
