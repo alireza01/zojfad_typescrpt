@@ -2,7 +2,7 @@
 // This module contains the logic for correctly shaping Persian text for PDF generation.
 // It replaces the old, broken string reversal method with a proper text shaping library.
 
-import { default as fShaper } from 'https://esm.sh/f-shaper@1.0.1';
+import { default as fShaper } from 'https://esm.sh/f-shaper';
 import { log } from '../utils/misc.ts';
 
 /**
@@ -16,14 +16,14 @@ import { log } from '../utils/misc.ts';
 export function processTextForPDF(text: any): string {
     // Ensure we are working with a string
     const inputText = String(text || '').trim();
-    
+
     if (!inputText) {
         return '-'; // Return a dash for empty or null inputs
     }
-    
+
     // Regular expression to detect if the string contains any Persian/Arabic characters.
     const hasPersian = /[\u0600-\u06FF]/.test(inputText);
-    
+
     if (hasPersian) {
         try {
             // Use f-shaper to correctly form ligatures and connect letters.
