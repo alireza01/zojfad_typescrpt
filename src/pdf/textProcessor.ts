@@ -1,10 +1,10 @@
 // src/pdf/textProcessor.ts
-import { shape } from 'https://esm.sh/arabic-shaper-ts@2.0.1';
+import reshaper from 'https://esm.sh/arabic-persian-reshaper';
 import { log } from '../utils/misc.ts';
 
 /**
  * Processes a string to make it suitable for rendering in the PDF.
- * This version uses the 'arabic-shaper-ts' library, which is more reliable.
+ * This version uses the 'arabic-persian-reshaper' library, which is more reliable.
  *
  * @param text The input string.
  * @returns The processed string, ready for the PDF.
@@ -22,12 +22,11 @@ export function processTextForPDF(text: any): string {
 
     if (hasPersian) {
         try {
-            // Use arabic-shaper-ts to correctly form ligatures and connect letters.
-            // This function returns the properly shaped string that jspdf can render.
-            return shape(inputText);
+            // Use arabic-persian-reshaper to shape the text
+            return reshaper.PersianShaper.convertArabic(inputText);
         } catch (e) {
-            log('ERROR', `arabic-shaper-ts failed for text: "${inputText}"`, e);
-            // Fallback for safety, though it will likely look wrong.
+            log('ERROR', `Text shaping failed for text: "${inputText}"`, e);
+            // Fallback for safety
             return inputText;
         }
     } else {
