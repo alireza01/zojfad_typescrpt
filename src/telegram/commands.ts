@@ -1,6 +1,7 @@
 // src/telegram/commands.ts
 import { sendMessage, editMessageText, answerCallbackQuery } from "./api.ts";
-import { logUsage, addUser, addGroup, getUserSchedule, getBotInfo } from "../supabase/db.ts";
+import { logUsage, addUser, addGroup, getUserSchedule } from "../supabase/db.ts";
+import { getBotInfo } from "./botInfo.ts";
 import { getPersianDate, getWeekStatus } from "../utils/date.ts";
 import { ADMIN_CHAT_ID, kv, ENGLISH_WEEKDAYS, PERSIAN_WEEKDAYS_FULL, SCHEDULE_TIME_REGEX, supabase } from "../config.ts";
 import { log, parseTime } from '../utils/misc.ts';

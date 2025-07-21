@@ -232,31 +232,7 @@ export async function deleteEntireWeekSchedule(userId: number, weekType: 'odd' |
     }
 }
 
-// --- Bot Info Cache ---
-export async function getBotInfo(forceUpdate = false): Promise<BotInfo> {
-    let botInfo = (await kv.get<BotInfo>(["botInfo"])).value;
-    if (!botInfo || forceUpdate) {
-        log("INFO", "Fetching bot info from Telegram API...");
-        // This dynamic import avoids a circular dependency with telegram/api.ts
-        const { telegramApiCall } = await import('../telegram/api.ts');
-        
-        const responseData = await telegramApiCall("getMe");
-        
-        if (responseData.ok && responseData.result) {
-            botInfo = {
-                id: responseData.result.id.toString(),
-                username: responseData.result.username || "UnknownBot",
-                first_name: responseData.result.first_name,
-            };
-            await kv.set(["botInfo"], botInfo);
-            log("INFO", `Bot info fetched and saved: ID=${botInfo.id}, Username=${botInfo.username}`);
-        } else {
-            log("ERROR", "Error fetching bot info", responseData);
-            botInfo = (await kv.get<BotInfo>(["botInfo"])).value || { id: null, username: "this_bot", first_name: "Bot" };
-        }
-    }
-    return botInfo;
-}
+
 
 // --- Broadcast DB Functions ---
 

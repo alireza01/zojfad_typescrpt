@@ -1,7 +1,7 @@
 // src/bot.ts
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { BOT_TOKEN, ADMIN_CHAT_ID } from "./config.ts";
-import { getBotInfo } from "./supabase/db.ts";
+import { getBotInfo } from "./telegram/botInfo.ts";
 import { getVazirFont } from "./pdf/font.ts";
 import { handleUpdate } from "./telegram/handlers.ts";
 import { setWebhook, sendMessage } from "./telegram/api.ts";

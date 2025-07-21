@@ -4,7 +4,8 @@ import { handleScheduleCallback, handlePdfCallback, handleAdminCallback } from '
 import { handleBroadcastMenu, handleBroadcastCallback, handleBroadcastContent } from './broadcast.ts'; // ⭐ Import new handlers
 import { editMessageText, sendMessage, answerCallbackQuery } from './api.ts';
 import { ADMIN_CHAT_ID, kv, SCHEDULE_TIME_REGEX } from "../config.ts";
-import { logUsage, getBotInfo, saveUserSchedule, addUser, addGroup } from "../supabase/db.ts";
+import { logUsage, saveUserSchedule, addUser, addGroup } from "../supabase/db.ts";
+import { getBotInfo } from "./botInfo.ts";
 import { log, parseTime } from '../utils/misc.ts';
 import type { Update, Message, CallbackQuery, User, UserState, BroadcastState } from "../types.ts";
 
